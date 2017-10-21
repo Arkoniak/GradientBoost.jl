@@ -38,7 +38,7 @@ end
 # @return Two partitions of indices, left and right.
 function holdout(n, right_prop)
   shuffled_indices = randperm(n)
-  partition_pivot = int(right_prop * n)
+  partition_pivot = round(Int, right_prop * n)
   right = shuffled_indices[1:partition_pivot]
   left = shuffled_indices[partition_pivot+1:end]
   return (left, right)

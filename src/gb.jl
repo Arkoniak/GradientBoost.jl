@@ -14,11 +14,11 @@ export GBAlgorithm,
 
 
 # Gradient boost algorithm.
-abstract GBAlgorithm
+abstract type GBAlgorithm end
 
 # Gradient boost model.
-type GBModel
-  learning_rate::FloatingPoint
+struct GBModel{T <: AbstractFloat}
+  learning_rate::T
   base_funcs::Vector{Function}
 end
 
@@ -31,7 +31,7 @@ end
 function stochastic_gradient_boost(gb::GBAlgorithm, instances, labels)
   # Initialize base functions collection
   num_iterations = gb.num_iterations
-  base_funcs = Array(Function, num_iterations+1)
+  base_funcs = Vector{Function}(num_iterations+1)
 
   # Create initial base function
   initial_val = minimizing_scalar(gb.loss_function, labels)
@@ -76,6 +76,7 @@ end
 function fit(gb::GBAlgorithm, instances, labels)
   stochastic_gradient_boost(gb, instances, labels)
 end
+
 function predict(gb_model::GBModel, instances)
   outputs = gb_model.base_funcs[1](instances)
   for i = 2:length(gb_model.base_funcs)
@@ -113,7 +114,7 @@ function create_sample_indices(gb::GBAlgorithm, instances, labels)
   n = size(instances, 1)
   prop = gb.sampling_rate
 
-  ind = randperm(n)[1:int(prop * n)]
+  ind = randperm(n)[1:round(Int, prop * n)]
 end
 
 end # module

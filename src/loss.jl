@@ -12,7 +12,7 @@ export LossFunction,
        BinomialDeviance
 
 # Loss function.
-abstract LossFunction
+abstract type LossFunction end
 
 # Calculates loss.
 # 
@@ -57,11 +57,11 @@ end
 type LeastAbsoluteDeviation <: LossFunction; end
 
 function loss(lf::LeastAbsoluteDeviation, y, y_pred)
-  mean(abs(y .- y_pred))
+  mean(abs.(y .- y_pred))
 end
 
 function negative_gradient(lf::LeastAbsoluteDeviation, y, y_pred)
-  sign(y .- y_pred)
+  sign.(y .- y_pred)
 end
 
 function minimizing_scalar(lf::LeastAbsoluteDeviation, y)
@@ -73,11 +73,11 @@ end
 type BinomialDeviance <: LossFunction; end
 
 function loss(lf::BinomialDeviance, y, y_pred)
-  -2.0 .* mean(y .* y_pred .- log(1.0 .+ exp(y_pred)))
+  -2.0 .* mean(y .* y_pred .- log.(1.0 .+ exp.(y_pred)))
 end
 
 function negative_gradient(lf::BinomialDeviance, y, y_pred)
-  y .- 1.0 ./ (1.0 .+ exp(-y_pred))
+  y .- 1.0 ./ (1.0 .+ exp.(-y_pred))
 end
 
 function minimizing_scalar(lf::BinomialDeviance, y)

@@ -4,8 +4,8 @@ using FactCheck
 importall GradientBoost.GBBaseLearner
 importall GradientBoost.LossFunctions
 
-type DummyLearner; end
-type StubLearner; end
+struct DummyLearner end
+struct StubLearner end
 
 function GBBaseLearner.learner_fit(lf::LossFunction, learner::StubLearner, 
   instances, labels)
@@ -25,7 +25,7 @@ end
 facts("GB Learner") do
   context("not implemented functions throw an error") do
     dl = DummyLearner()
-    emp_mat = Array(Any, 1, 1)
+    emp_mat = Array{Any}(1, 1)
     emp_vec = Array[]
     dummy_model = emp_vec
 
@@ -45,7 +45,7 @@ facts("GB Learner") do
 
   context("build_base_func works") do
     sl = StubLearner()
-    gb = GBBL(sl)
+    gb = GBBL{Float64}(sl)
     instances = [
       1 1;
       2 4;
@@ -72,8 +72,8 @@ facts("GB Learner") do
     )
 
     predictions = base_func(instances)
-    expected = { 1.0, 3.0 }
-    @fact predictions => roughly(expected)
+    expected = [ 1.0, 3.0 ]
+    @fact predictions --> roughly(expected, atol = 1e-5)
   end
 
   context("LeastSquares fit_best_constant works") do
@@ -84,7 +84,7 @@ facts("GB Learner") do
     actual = GBBaseLearner.fit_best_constant(
       lf, dummy_vec, dummy_vec, dummy_vec, dummy_vec
     )
-    @fact actual => expected
+    @fact actual --> expected
   end
   context("LeastAbsoluteDeviation fit_best_constant works") do
     lf = LeastAbsoluteDeviation()
@@ -97,7 +97,7 @@ facts("GB Learner") do
     actual = GBBaseLearner.fit_best_constant(
       lf, labels, dummy_vec, psuedo_pred, prev_func_pred
     )
-    @fact actual => roughly(expected)
+    @fact actual --> roughly(expected, atol = 1e-5)
   end
   context("BinomialDeviance fit_best_constant throws error") do
     lf = BinomialDeviance()

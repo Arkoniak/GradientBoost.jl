@@ -11,16 +11,16 @@ importall GradientBoost.LossFunctions
 importall GradientBoost.Util
 
 # Gradient boosted base learner algorithm.
-type GBBL <: GBAlgorithm
+struct GBBL{T <: AbstractFloat} <: GBAlgorithm
   loss_function::LossFunction
-  sampling_rate::FloatingPoint
-  learning_rate::FloatingPoint
+  sampling_rate::T
+  learning_rate::T
   num_iterations::Int
   learner
 
-  function GBBL(learner; loss_function=LeastSquares(),
+  function GBBL{T}(learner; loss_function=LeastSquares(),
     sampling_rate=0.8, learning_rate=0.1, 
-    num_iterations=100)
+    num_iterations=100) where T
 
     new(loss_function, sampling_rate, learning_rate, num_iterations, learner)
   end
@@ -80,7 +80,7 @@ end
 function fit_best_constant(lf::LeastAbsoluteDeviation,
   labels, psuedo, psuedo_pred, prev_func_pred)
 
-  weights = abs(psuedo_pred)
+  weights = abs.(psuedo_pred)
   values = labels .- prev_func_pred
 
   for i = 1:length(labels)

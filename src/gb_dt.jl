@@ -11,21 +11,21 @@ export GBDT,
        build_base_func
 
 # Gradient boosted decision tree algorithm.
-type GBDT <: GBAlgorithm
+struct GBDT{T<:AbstractFloat} <: GBAlgorithm
   loss_function::LossFunction
-  sampling_rate::FloatingPoint
-  learning_rate::FloatingPoint
+  sampling_rate::T
+  learning_rate::T
   num_iterations::Int
   tree_options::Dict
 
-  function GBDT(;loss_function=LeastSquares(),
-    sampling_rate=0.6, learning_rate=0.1, 
-    num_iterations=100, tree_options=Dict())
+  function GBDT{T}(;loss_function=LeastSquares(),
+    sampling_rate::T=0.6, learning_rate::T=0.1, 
+    num_iterations=100, tree_options=Dict()) where T
 
-    default_options = {
+    default_options = Dict(
       :maxlabels => 5,
       :nsubfeatures => 0
-    }
+    )
     options = merge(default_options, tree_options)
     new(loss_function, sampling_rate, learning_rate, num_iterations, options)
   end
@@ -87,14 +87,14 @@ end
 
 # DT Helper Functions
 
-type InstanceNodeIndex
+struct InstanceNodeIndex
   i2n::Vector{Leaf}
   n2i::DefaultDict{Leaf, Vector{Int}}
 
-  function InstanceNodeIndex(tree::Union(Leaf,Node), instances)
+  function InstanceNodeIndex(tree::Union{Leaf, Node}, instances)
     num_instances = size(instances, 1)
-    i2n = Array(Leaf, num_instances)
-    n2i = DefaultDict(Leaf, Vector{Int}, () -> Int[])
+    i2n = Vector{Leaf}(num_instances)
+    n2i = DefaultDict{Leaf, Vector{Int}}(() -> Int[])
 
     for i = 1:num_instances
       node = instance_to_node(tree, instances[i,:])
@@ -110,7 +110,7 @@ end
 function instance_to_node(tree::Node, instance)
   # Code adapted from DecisionTree.jl
   features = instance
-  if tree.featval == nothing || features[tree.featid] < tree.featval
+  if tree.featval isa Void || features[tree.featid] < tree.featval
     return instance_to_node(tree.left, features)
   else
     return instance_to_node(tree.right, features)

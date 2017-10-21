@@ -16,7 +16,7 @@ import GLM: fit, predict, LinearModel
 function experiment(gbl_func, score_func, baseline_func,
   num_experiments, instances, labels)
 
-  scores = Array(Float64, num_experiments)
+    scores = Vector{Float64}(num_experiments)
   for i = 1:num_experiments
     # Obtain training and test set
     (train_ind, test_ind) = holdout(size(instances, 1), 0.2)
@@ -37,7 +37,7 @@ function experiment(gbl_func, score_func, baseline_func,
 
   # Sanity check, score should be less than baseline.
   baseline = baseline_func(labels)
-  @fact mean(scores) <= baseline => true
+  @fact mean(scores) <= baseline --> true
 
   scores
 end
@@ -62,7 +62,7 @@ end
 
 # Mean absolute deviation
 function mad(predictions, actual)
-  mean(abs(actual .- predictions))
+  mean(abs.(actual .- predictions))
 end
 function baseline_mad(labels)
   label_median = median(labels)
@@ -95,7 +95,7 @@ facts("System tests") do
 
     # Train and test multiple times (GBDT)
     function gbl_func()
-      gbdt = GBDT(;
+        gbdt = GBDT{Float64}(
         loss_function=BinomialDeviance(),
         sampling_rate=0.6,
         learning_rate=0.1,
@@ -121,7 +121,7 @@ facts("System tests") do
     # Train and test multiple times (MSE)
     gbl_mse_funcs = Function[]
     function mse_gbdt_func()
-      gbdt = GBDT(;
+      gbdt = GBDT{Float64}(
         loss_function=LeastSquares(),
         sampling_rate=0.6,
         learning_rate=0.1,
@@ -130,17 +130,17 @@ facts("System tests") do
       gbl = GBLearner(gbdt, :regression)
     end
     push!(gbl_mse_funcs, mse_gbdt_func)
-    function mse_gbl_func()
-      gbl = GBBL(
-        LinearModel;
-        loss_function=LeastSquares(),
-        sampling_rate=0.8,
-        learning_rate=0.1,
-        num_iterations=100,
-      )
-      gbl = GBLearner(gbl, :regression)
-    end
-    push!(gbl_mse_funcs, mse_gbl_func)
+    # function mse_gbl_func()
+    #   gbl = GBBL{Float64}(
+    #     LinearModel;
+    #     loss_function=LeastSquares(),
+    #     sampling_rate=0.8,
+    #     learning_rate=0.1,
+    #     num_iterations=100,
+    #   )
+    #   gbl = GBLearner(gbl, :regression)
+    # end
+    # push!(gbl_mse_funcs, mse_gbl_func)
     for i = 1:length(gbl_mse_funcs)
       experiment(
         gbl_mse_funcs[i], mse, baseline_mse, num_experiments, instances, labels
@@ -150,7 +150,7 @@ facts("System tests") do
     # Train and test multiple times (MAD)
     gbl_mad_funcs = Function[]
     function mad_gbdt_func()
-      gbdt = GBDT(;
+      gbdt = GBDT{Float64}(
         loss_function=LeastAbsoluteDeviation(),
         sampling_rate=0.6,
         learning_rate=0.1,
@@ -159,17 +159,17 @@ facts("System tests") do
       gbl = GBLearner(gbdt, :regression)
     end
     push!(gbl_mad_funcs, mad_gbdt_func)
-    function mad_gbl_func()
-      gbl = GBBL(
-        LinearModel;
-        loss_function=LeastAbsoluteDeviation(),
-        sampling_rate=0.8,
-        learning_rate=0.1,
-        num_iterations=100,
-      )
-      gbl = GBLearner(gbl, :regression)
-    end
-    push!(gbl_mad_funcs, mad_gbl_func)
+    # function mad_gbl_func()
+    #   gbl = GBBL{Float64}(
+    #     LinearModel,
+    #     loss_function=LeastAbsoluteDeviation(),
+    #     sampling_rate=0.8,
+    #     learning_rate=0.1,
+    #     num_iterations=100,
+    #   )
+    #   gbl = GBLearner(gbl, :regression)
+    # end
+    # push!(gbl_mad_funcs, mad_gbl_func)
     for i = 1:length(gbl_mad_funcs)
       experiment(
         gbl_mad_funcs[i], mad, baseline_mad, num_experiments, instances, labels
