@@ -1,7 +1,7 @@
 # GradientBoost
 
-[![Build Status](https://travis-ci.org/svs14/GradientBoost.jl.svg?branch=master)](https://travis-ci.org/svs14/GradientBoost.jl)
-[![Coverage Status](https://coveralls.io/repos/svs14/GradientBoost.jl/badge.png?branch=master)](https://coveralls.io/r/svs14/GradientBoost.jl?branch=master)
+[![Build Status](https://travis-ci.org/Arkoniak/GradientBoost.jl.svg?branch=master)](https://travis-ci.org/Arkoniak/GradientBoost.jl)
+[![Coverage Status](https://coveralls.io/repos/Arkoniak/GradientBoost.jl/badge.png?branch=master)](https://coveralls.io/r/Arkoniak/GradientBoost.jl?branch=master)
 
 This package covers the gradient boosting paradigm: a framework that builds
 additive expansions based on any fitting criteria.
