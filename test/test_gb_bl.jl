@@ -1,6 +1,8 @@
 module TestGBBaseLearner
 
-using FactCheck
+using ..CustomTS
+using Base.Test
+
 importall GradientBoost.GBBaseLearner
 importall GradientBoost.LossFunctions
 
@@ -22,30 +24,30 @@ function GBBaseLearner.learner_predict(lf::LossFunction, learner::StubLearner,
   predictions = [pred_func(instances[i,:]) for i = 1:num_instances]
 end
 
-facts("GB Learner") do
-  context("not implemented functions throw an error") do
+@testset CustomTestSet "GB Learner" begin
+  @testset CustomTestSet "not implemented functions throw an error" begin
     dl = DummyLearner()
     emp_mat = Array{Any}(1, 1)
     emp_vec = Array[]
     dummy_model = emp_vec
 
-    @fact_throws learner_fit(
+    @test_throws ErrorException learner_fit(
       LeastSquares(),
-      dgb,
+      dl,
       emp_mat,
       emp_vec
     )
-    @fact_throws learner_predict(
+    @test_throws ErrorException learner_predict(
       LeastSquares(),
-      dgb,
+      dl,
       dummy_model,
       emp_mat
     )
   end
 
-  context("build_base_func works") do
+  @testset CustomTestSet "build_base_func works" begin
     sl = StubLearner()
-    gb = GBBL{Float64}(sl)
+    gb = GBBL(sl)
     instances = [
       1 1;
       2 4;
@@ -73,10 +75,10 @@ facts("GB Learner") do
 
     predictions = base_func(instances)
     expected = [ 1.0, 3.0 ]
-    @fact predictions --> roughly(expected, atol = 1e-5)
+    @test isapprox(predictions, expected, atol = 1e-5)
   end
 
-  context("LeastSquares fit_best_constant works") do
+  @testset CustomTestSet "LeastSquares fit_best_constant works" begin
     lf = LeastSquares()
     dummy_vec = [0.0,0.0,0.0,0.0]
     expected = 1.0
@@ -84,9 +86,9 @@ facts("GB Learner") do
     actual = GBBaseLearner.fit_best_constant(
       lf, dummy_vec, dummy_vec, dummy_vec, dummy_vec
     )
-    @fact actual --> expected
+    @test actual == expected
   end
-  context("LeastAbsoluteDeviation fit_best_constant works") do
+  @testset CustomTestSet "LeastAbsoluteDeviation fit_best_constant works" begin
     lf = LeastAbsoluteDeviation()
     dummy_vec = [0.0,0.0,0.0,0.0]
     labels = [0.0,1.0,2.0,3.0]
@@ -97,13 +99,13 @@ facts("GB Learner") do
     actual = GBBaseLearner.fit_best_constant(
       lf, labels, dummy_vec, psuedo_pred, prev_func_pred
     )
-    @fact actual --> roughly(expected, atol = 1e-5)
+    @test isapprox(actual, expected, atol = 1e-5)
   end
-  context("BinomialDeviance fit_best_constant throws error") do
+  @testset CustomTestSet "BinomialDeviance fit_best_constant throws error" begin
     lf = BinomialDeviance()
     dummy_vec = [0.0,0.0,0.0,0.0]
 
-    @fact_throws GBBaseLearner.fit_best_constant(
+    @test_throws ErrorException GBBaseLearner.fit_best_constant(
       lf, dummy_vec, dummy_vec, dummy_vec, dummy_vec
     )
   end

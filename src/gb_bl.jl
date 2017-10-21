@@ -11,19 +11,18 @@ importall GradientBoost.LossFunctions
 importall GradientBoost.Util
 
 # Gradient boosted base learner algorithm.
-struct GBBL{T <: AbstractFloat} <: GBAlgorithm
+struct GBBL{T <: AbstractFloat, A} <: GBAlgorithm
   loss_function::LossFunction
   sampling_rate::T
   learning_rate::T
   num_iterations::Int
-  learner
-
-  function GBBL{T}(learner; loss_function=LeastSquares(),
+  learner::A
+end
+function GBBL(learner; loss_function=LeastSquares(),
     sampling_rate=0.8, learning_rate=0.1, 
-    num_iterations=100) where T
+    num_iterations=100)
 
-    new(loss_function, sampling_rate, learning_rate, num_iterations, learner)
-  end
+    GBBL{typeof(sampling_rate), typeof(learner)}(loss_function, sampling_rate, learning_rate, num_iterations, learner)
 end
 
 function GB.build_base_func(

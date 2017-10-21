@@ -1,7 +1,8 @@
 # System tests.
 module TestSystem
 
-using FactCheck
+using ..CustomTS
+using Base.Test
 
 importall GradientBoost.Util
 importall GradientBoost.ML
@@ -37,7 +38,7 @@ function experiment(gbl_func, score_func, baseline_func,
 
   # Sanity check, score should be less than baseline.
   baseline = baseline_func(labels)
-  @fact mean(scores) <= baseline --> true
+  @test mean(scores) <= baseline
 
   scores
 end
@@ -71,19 +72,20 @@ end
 
 num_experiments = 10
 
+struct LinearModelWrapper end
 function ML.learner_fit(lf::LossFunction,
-  learner::Type{LinearModel}, instances, labels)
+                        learner::LinearModelWrapper, instances, labels)
 
-  model = fit(learner, instances, labels)
+  model = fit(LinearModel, instances, labels)
 end
 function ML.learner_predict(lf::LossFunction,
-  learner::Type{LinearModel}, model, instances)
+                            learner::LinearModelWrapper, model, instances)
 
   predict(model, instances)
 end
 
-facts("System tests") do
-  context("iris dataset is handled by GBDT") do
+@testset CustomTestSet "System tests" begin
+  @testset CustomTestSet "iris dataset is handled by GBDT" begin
     # Get data
     iris = readcsv(joinpath(dirname(@__FILE__), "iris.csv"))
     instances = iris[:, 1:(end-1)]
@@ -108,7 +110,7 @@ facts("System tests") do
     )
   end
 
-  context("mtcars dataset is handled") do
+  @testset CustomTestSet "mtcars dataset is handled" begin
     # Get data
     mtcars = readcsv(joinpath(dirname(@__FILE__), "mtcars.csv"))
     instances = mtcars[:, 2:end]
@@ -130,20 +132,20 @@ facts("System tests") do
       gbl = GBLearner(gbdt, :regression)
     end
     push!(gbl_mse_funcs, mse_gbdt_func)
-    # function mse_gbl_func()
-    #   gbl = GBBL{Float64}(
-    #     LinearModel;
-    #     loss_function=LeastSquares(),
-    #     sampling_rate=0.8,
-    #     learning_rate=0.1,
-    #     num_iterations=100,
-    #   )
-    #   gbl = GBLearner(gbl, :regression)
-    # end
-    # push!(gbl_mse_funcs, mse_gbl_func)
-    for i = 1:length(gbl_mse_funcs)
+    function mse_gbl_func()
+      gbl = GBBL(
+        LinearModelWrapper(),
+        loss_function=LeastSquares(),
+        sampling_rate=0.8,
+        learning_rate=0.1,
+        num_iterations=100,
+      )
+      gbl = GBLearner(gbl, :regression)
+    end
+    push!(gbl_mse_funcs, mse_gbl_func)
+    for func in gbl_mse_funcs
       experiment(
-        gbl_mse_funcs[i], mse, baseline_mse, num_experiments, instances, labels
+        func, mse, baseline_mse, num_experiments, instances, labels
       )
     end
 
@@ -159,17 +161,17 @@ facts("System tests") do
       gbl = GBLearner(gbdt, :regression)
     end
     push!(gbl_mad_funcs, mad_gbdt_func)
-    # function mad_gbl_func()
-    #   gbl = GBBL{Float64}(
-    #     LinearModel,
-    #     loss_function=LeastAbsoluteDeviation(),
-    #     sampling_rate=0.8,
-    #     learning_rate=0.1,
-    #     num_iterations=100,
-    #   )
-    #   gbl = GBLearner(gbl, :regression)
-    # end
-    # push!(gbl_mad_funcs, mad_gbl_func)
+    function mad_gbl_func()
+      gbl = GBBL(
+        LinearModelWrapper(),
+        loss_function=LeastAbsoluteDeviation(),
+        sampling_rate=0.8,
+        learning_rate=0.1,
+        num_iterations=100,
+      )
+      gbl = GBLearner(gbl, :regression)
+    end
+    push!(gbl_mad_funcs, mad_gbl_func)
     for i = 1:length(gbl_mad_funcs)
       experiment(
         gbl_mad_funcs[i], mad, baseline_mad, num_experiments, instances, labels

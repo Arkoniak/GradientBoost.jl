@@ -1,6 +1,8 @@
 module TestGB
 
-using FactCheck
+using ..CustomTS
+using Base.Test
+
 importall GradientBoost.GB
 importall GradientBoost.LossFunctions
 
@@ -42,12 +44,12 @@ sgb_labels = [
   3.0
 ]
 
-facts("Gradient Boost") do
-  context("not implemented functions throw an error") do
+@testset CustomTestSet "Gradient Boost" begin
+  @testset CustomTestSet "not implemented functions throw an error" begin
     dgb = DummyGradientBoost()
     emp_mat = Array{Any}(1, 1)
     emp_vec = Array[]
-    @fact_throws build_base_func(
+    @test_throws ErrorException build_base_func(
       dgb,
       emp_mat,
       emp_vec,
@@ -56,20 +58,19 @@ facts("Gradient Boost") do
     )
   end
 
-  context("stochastic_gradient_boost works") do
+  @testset CustomTestSet "stochastic_gradient_boost works" begin
     # Sanity check
     sgb = StubGradientBoost(LeastSquares(), 1.0, 0.5, 1)
     model = stochastic_gradient_boost(sgb, sgb_instances, sgb_labels)
-    @fact 1 --> 1
   end
 
-  context("fit returns model") do
+  @testset CustomTestSet "fit returns model" begin
     sgb = StubGradientBoost(LeastSquares(), 1.0, 0.5, 1)
     model = stochastic_gradient_boost(sgb, sgb_instances, sgb_labels)
-    @fact typeof(model) <: GBModel --> true
+    @test typeof(model) <: GBModel
   end
 
-  context("predict works") do
+  @testset CustomTestSet "predict works" begin
     expected = [
       3.0
       3.5
@@ -77,26 +78,26 @@ facts("Gradient Boost") do
     sgb = StubGradientBoost(LeastSquares(), 1.0, 0.5, 1)
     model = stochastic_gradient_boost(sgb, sgb_instances, sgb_labels)
     predictions = predict(model, sgb_instances)
-    @fact predictions --> expected
+    @test predictions == expected
   end
 
-  context("create_sample_indices works") do
+  @testset CustomTestSet "create_sample_indices works" begin
     instances = [1:5 6:10]
     labels = [1:5]
 
     sgb = StubGradientBoost(LeastSquares(), 1.0, 1.0, 1)
     indices = create_sample_indices(sgb, instances, labels)
-    @fact length(indices) --> 5
-    @fact length(unique(indices)) --> 5
-    @fact minimum(indices) >= 1 --> true
-    @fact maximum(indices) <= 5 --> true
+    @test length(indices) == 5
+    @test length(unique(indices)) == 5
+    @test minimum(indices) >= 1
+    @test maximum(indices) <= 5
 
     sgb = StubGradientBoost(LeastSquares(), 0.5, 1.0, 1)
     indices = create_sample_indices(sgb, instances, labels)
-    @fact length(indices) --> 2
-    @fact length(unique(indices)) --> 2
-    @fact minimum(indices) >= 1 --> true
-    @fact maximum(indices) <= 5 --> true
+    @test length(indices) == 2
+    @test length(unique(indices)) == 2
+    @test minimum(indices) >= 1
+    @test maximum(indices) <= 5
   end
 end
 
